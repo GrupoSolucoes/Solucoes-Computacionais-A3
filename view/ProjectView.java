@@ -4,6 +4,7 @@ import controller.ProjectController;
 import model.Project;
 
 import javax.swing.*;
+import javax.swing.border.EmptyBorder;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
 import java.util.Date;
@@ -11,218 +12,264 @@ import java.util.List;
 
 /**
  * Tela de gerenciamento de projetos.
- * Permite criar, atualizar, deletar e listar projetos usando JTable e formulários Swing.
- * Agora com JSpinner para seleção de datas e JComboBox para Status.
+ * Versão com layout corrigido para campos proporcionais.
  */
 public class ProjectView extends JFrame {
 
-    // Controlador que faz a comunicação com a camada DAO
-    private final ProjectController projectController = new ProjectController();
+    // --- Paleta de Cores e Fontes ---
+    private static final Color COR_FUNDO = new Color(245, 245, 245);
+    private static final Color COR_PAINEL_FORMULARIO = Color.WHITE;
+    private static final Color COR_BOTAO_SALVAR = new Color(34, 139, 34);
+    private static final Color COR_BOTAO_DELETAR = new Color(178, 34, 34);
+    private static final Font FONTE_PADRAO = new Font("Segoe UI", Font.PLAIN, 14);
+    private static final Font FONTE_BOTAO = new Font("Segoe UI", Font.BOLD, 12);
+    private static final Font FONTE_TITULO_PAINEL = new Font("Segoe UI", Font.BOLD, 16);
 
-    // Tabela para exibir projetos
+    private final ProjectController projectController = new ProjectController();
     private final DefaultTableModel tableModel;
     private final JTable projectTable;
 
-    // Campos de formulário
-    private final JTextField txtId = new JTextField();
-    private final JTextField txtName = new JTextField();
+    // Campos de formulário com tamanho preferencial
+    private final JTextField txtId = new JTextField(20);
+    private final JTextField txtName = new JTextField(20);
     private final JTextArea txtDescription = new JTextArea(3, 20);
-
-    // Campos de data usando JSpinner
     private final JSpinner spinnerStartDate = new JSpinner(new SpinnerDateModel());
     private final JSpinner spinnerEndDatePrev = new JSpinner(new SpinnerDateModel());
     private final JSpinner spinnerEndDateReal = new JSpinner(new SpinnerDateModel());
-
-    // Campo de status usando JComboBox
-    private final String[] statusOptions = {"Aberto", "Pendente", "Finalizado"};
-    private final JComboBox<String> comboStatus = new JComboBox<>(statusOptions);
-
-    // Campo para ID do gerente
-    private final JTextField txtManagerId = new JTextField();
+    private final JComboBox<String> comboStatus = new JComboBox<>(new String[]{"Planejado", "Em andamento", "Concluído", "Cancelado"});
+    private final JTextField txtManagerId = new JTextField(20);
 
     public ProjectView() {
         setTitle("Gestão de Projetos");
-        setSize(800, 700);
+        setSize(850, 700);
         setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
         setLocationRelativeTo(null);
-        setLayout(new BorderLayout(10, 10));
 
-        // Formata os spinners para mostrar datas no formato dd/MM/yyyy
+        JPanel mainPanel = new JPanel(new BorderLayout(10, 10));
+        mainPanel.setBackground(COR_FUNDO);
+        mainPanel.setBorder(new EmptyBorder(15, 15, 15, 15));
+        setContentPane(mainPanel);
+
+        JPanel topPanel = new JPanel(new BorderLayout(10, 10));
+        topPanel.setBackground(COR_FUNDO);
+
+        JPanel formPanel = new JPanel(new GridBagLayout());
+        GridBagConstraints gbc = new GridBagConstraints();
+        formPanel.setBackground(COR_PAINEL_FORMULARIO);
+        formPanel.setBorder(BorderFactory.createTitledBorder(
+                BorderFactory.createLineBorder(Color.LIGHT_GRAY), "Dados do Projeto"));
+        ((javax.swing.border.TitledBorder) formPanel.getBorder()).setTitleFont(FONTE_TITULO_PAINEL);
+        gbc.insets = new Insets(5, 10, 5, 10);
+        gbc.anchor = GridBagConstraints.WEST;
+
+        txtId.setEditable(false);
         spinnerStartDate.setEditor(new JSpinner.DateEditor(spinnerStartDate, "dd/MM/yyyy"));
         spinnerEndDatePrev.setEditor(new JSpinner.DateEditor(spinnerEndDatePrev, "dd/MM/yyyy"));
         spinnerEndDateReal.setEditor(new JSpinner.DateEditor(spinnerEndDateReal, "dd/MM/yyyy"));
 
-        // Painel de formulário com GridLayout
-        JPanel formPanel = new JPanel(new GridLayout(0, 2, 10, 10));
-        formPanel.setBorder(BorderFactory.createTitledBorder("Dados do Projeto"));
+        gbc.gridx = 0; gbc.gridy = 0; formPanel.add(createStyledLabel("ID:"), gbc);
+        gbc.gridx = 1; formPanel.add(txtId, gbc);
 
-        // Campo de ID (não editável)
-        txtId.setEditable(false);
-        formPanel.add(new JLabel("ID:"));
-        formPanel.add(txtId);
+        gbc.gridx = 0; gbc.gridy = 1; formPanel.add(createStyledLabel("Nome do Projeto:"), gbc);
+        gbc.gridx = 1; formPanel.add(txtName, gbc);
 
-        // Campos de nome e descrição
-        formPanel.add(new JLabel("Nome:"));
-        formPanel.add(txtName);
+        gbc.gridx = 0; gbc.gridy = 2; formPanel.add(createStyledLabel("Descrição:"), gbc);
+        gbc.gridx = 1; formPanel.add(new JScrollPane(txtDescription), gbc);
 
-        formPanel.add(new JLabel("Descrição:"));
-        formPanel.add(new JScrollPane(txtDescription));
+        gbc.gridx = 0; gbc.gridy = 3; formPanel.add(createStyledLabel("Data de Início:"), gbc);
+        gbc.gridx = 1; formPanel.add(spinnerStartDate, gbc);
 
-        // Campos de datas com JSpinner
-        formPanel.add(new JLabel("Data Início:"));
-        formPanel.add(spinnerStartDate);
+        gbc.gridx = 0; gbc.gridy = 4; formPanel.add(createStyledLabel("Data Fim Prevista:"), gbc);
+        gbc.gridx = 1; formPanel.add(spinnerEndDatePrev, gbc);
 
-        formPanel.add(new JLabel("Data Fim Prevista:"));
-        formPanel.add(spinnerEndDatePrev);
+        gbc.gridx = 0; gbc.gridy = 5; formPanel.add(createStyledLabel("Data Fim Real:"), gbc);
+        gbc.gridx = 1; formPanel.add(spinnerEndDateReal, gbc);
 
-        formPanel.add(new JLabel("Data Fim Real:"));
-        formPanel.add(spinnerEndDateReal);
+        gbc.gridx = 0; gbc.gridy = 6; formPanel.add(createStyledLabel("Status:"), gbc);
+        gbc.gridx = 1; formPanel.add(comboStatus, gbc);
 
-        // Campo de status com JComboBox
-        formPanel.add(new JLabel("Status:"));
-        formPanel.add(comboStatus);
+        gbc.gridx = 0; gbc.gridy = 7; formPanel.add(createStyledLabel("ID do Gerente:"), gbc);
+        gbc.gridx = 1; formPanel.add(txtManagerId, gbc);
 
-        // Campo para ID do gerente
-        formPanel.add(new JLabel("ID do Gerente:"));
-        formPanel.add(txtManagerId);
+        topPanel.add(formPanel, BorderLayout.CENTER);
 
-        add(formPanel, BorderLayout.NORTH);
-
-        // Painel de botões
-        JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER));
-        JButton btnSave = new JButton("Salvar");
-        JButton btnUpdate = new JButton("Atualizar");
-        JButton btnDelete = new JButton("Deletar");
+        JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 10, 0));
+        buttonPanel.setBackground(COR_FUNDO);
+        buttonPanel.setBorder(new EmptyBorder(10, 0, 10, 0));
+        JButton btnSave = createStyledButton("Salvar", COR_BOTAO_SALVAR);
+        JButton btnUpdate = createStyledButton("Atualizar", Color.DARK_GRAY);
+        JButton btnDelete = createStyledButton("Deletar", COR_BOTAO_DELETAR);
         buttonPanel.add(btnSave);
         buttonPanel.add(btnUpdate);
         buttonPanel.add(btnDelete);
-        add(buttonPanel, BorderLayout.CENTER);
+        topPanel.add(buttonPanel, BorderLayout.SOUTH);
+        mainPanel.add(topPanel, BorderLayout.NORTH);
 
-        // Configuração da tabela de projetos
-        String[] columnNames = {"ID", "Nome", "Status", "Gerente ID"};
+        String[] columnNames = {"ID", "Nome", "Status", "Gerente ID", "Data Fim Prevista"};
         tableModel = new DefaultTableModel(columnNames, 0);
         projectTable = new JTable(tableModel);
-        add(new JScrollPane(projectTable), BorderLayout.SOUTH);
+        projectTable.setFont(FONTE_PADRAO);
+        projectTable.setRowHeight(25);
+        projectTable.getTableHeader().setFont(FONTE_BOTAO);
+        mainPanel.add(new JScrollPane(projectTable), BorderLayout.CENTER);
 
-        // Ações dos botões
         btnSave.addActionListener(e -> saveProject());
         btnUpdate.addActionListener(e -> updateProject());
         btnDelete.addActionListener(e -> deleteProject());
-
-        // Carrega projetos existentes no início
+        projectTable.getSelectionModel().addListSelectionListener(e -> {
+            if (!e.getValueIsAdjusting() && projectTable.getSelectedRow() != -1) {
+                populateFormFromSelectedRow();
+            }
+        });
         loadProjects();
     }
 
-    /**
-     * Salva um novo projeto.
-     */
+    // --- MÉTODOS AUXILIARES E DE LÓGICA (AGORA COMPLETOS) ---
+    private JLabel createStyledLabel(String text) {
+        JLabel label = new JLabel(text);
+        label.setFont(FONTE_PADRAO);
+        return label;
+    }
+
+    private JButton createStyledButton(String text, Color background) {
+        JButton button = new JButton(text);
+        button.setFont(FONTE_BOTAO);
+        button.setBackground(background);
+        button.setForeground(Color.WHITE);
+        return button;
+    }
+
     private void saveProject() {
+        String projectName = txtName.getText().trim();
+        if (projectName.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "O nome do projeto não pode estar em branco.", "Erro de Validação", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
         try {
-            // Obtém as datas diretamente dos spinners
-            Date startDate = (Date) spinnerStartDate.getValue();
-            Date endDatePrev = (Date) spinnerEndDatePrev.getValue();
-            Date endDateReal = (Date) spinnerEndDateReal.getValue();
-
-            // Obtém o status selecionado
-            String status = (String) comboStatus.getSelectedItem();
-
-            // Cria o objeto Project (sem ID, pois será gerado pelo banco)
             Project project = new Project(
-                    txtName.getText(),
+                    projectName,
                     txtDescription.getText(),
-                    startDate,
-                    endDatePrev,
-                    endDateReal,
-                    status,
+                    (Date) spinnerStartDate.getValue(),
+                    (Date) spinnerEndDatePrev.getValue(),
+                    (Date) spinnerEndDateReal.getValue(),
+                    (String) comboStatus.getSelectedItem(),
                     Integer.parseInt(txtManagerId.getText())
             );
-
-            // Tenta salvar no banco via controller
             if (projectController.addProject(project)) {
                 JOptionPane.showMessageDialog(this, "Projeto salvo com sucesso!");
-                loadProjects(); // atualiza tabela
+                refreshView();
             } else {
                 JOptionPane.showMessageDialog(this, "Falha ao salvar o projeto.");
             }
         } catch (NumberFormatException e) {
-            JOptionPane.showMessageDialog(this, "ID do Gerente deve ser um número.");
+            JOptionPane.showMessageDialog(this, "ID do Gerente deve ser um número válido.", "Erro de Formato", JOptionPane.ERROR_MESSAGE);
         }
     }
 
-    /**
-     * Atualiza um projeto existente.
-     */
     private void updateProject() {
+        if (txtId.getText().isEmpty()) {
+            JOptionPane.showMessageDialog(this, "Selecione um projeto na tabela para atualizar.", "Aviso", JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+        String projectName = txtName.getText().trim();
+        if (projectName.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "O nome do projeto não pode estar em branco.", "Erro de Validação", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
         try {
-            // Obtém as datas diretamente dos spinners
-            Date startDate = (Date) spinnerStartDate.getValue();
-            Date endDatePrev = (Date) spinnerEndDatePrev.getValue();
-            Date endDateReal = (Date) spinnerEndDateReal.getValue();
-
-            // Obtém o status selecionado
-            String status = (String) comboStatus.getSelectedItem();
-
-            // Cria o objeto Project usando o construtor sem ID
             Project project = new Project(
-                    txtName.getText(),
+                    projectName,
                     txtDescription.getText(),
-                    startDate,
-                    endDatePrev,
-                    endDateReal,
-                    status,
+                    (Date) spinnerStartDate.getValue(),
+                    (Date) spinnerEndDatePrev.getValue(),
+                    (Date) spinnerEndDateReal.getValue(),
+                    (String) comboStatus.getSelectedItem(),
                     Integer.parseInt(txtManagerId.getText())
             );
-
-            // Define manualmente o ID para atualizar o projeto correto
             project.setId(Integer.parseInt(txtId.getText()));
 
-            // Atualiza via controller
             if (projectController.updateProject(project)) {
                 JOptionPane.showMessageDialog(this, "Projeto atualizado com sucesso!");
-                loadProjects(); // atualiza tabela
+                refreshView();
             } else {
                 JOptionPane.showMessageDialog(this, "Falha ao atualizar o projeto.");
             }
         } catch (NumberFormatException e) {
-            JOptionPane.showMessageDialog(this, "Selecione um projeto e verifique o ID do Gerente.");
+            JOptionPane.showMessageDialog(this, "ID do Gerente deve ser um número válido.", "Erro de Formato", JOptionPane.ERROR_MESSAGE);
         }
     }
 
-    /**
-     * Deleta um projeto selecionado.
-     */
     private void deleteProject() {
+        if (txtId.getText().isEmpty()) {
+            JOptionPane.showMessageDialog(this, "Selecione um projeto na tabela para deletar.", "Aviso", JOptionPane.WARNING_MESSAGE);
+            return;
+        }
         try {
             int projectId = Integer.parseInt(txtId.getText());
-
-            // Confirmação antes de deletar
-            int confirmation = JOptionPane.showConfirmDialog(this, "Tem certeza?", "Confirmação", JOptionPane.YES_NO_OPTION);
+            int confirmation = JOptionPane.showConfirmDialog(this, "Tem certeza que deseja deletar este projeto?", "Confirmação", JOptionPane.YES_NO_OPTION);
             if (confirmation == JOptionPane.YES_OPTION) {
                 if (projectController.deleteProject(projectId)) {
                     JOptionPane.showMessageDialog(this, "Projeto deletado com sucesso!");
-                    loadProjects(); // atualiza tabela
+                    refreshView();
                 } else {
                     JOptionPane.showMessageDialog(this, "Falha ao deletar o projeto.");
                 }
             }
         } catch (NumberFormatException e) {
-            JOptionPane.showMessageDialog(this, "Selecione um projeto para deletar.");
+            JOptionPane.showMessageDialog(this, "ID do projeto inválido.", "Erro", JOptionPane.ERROR_MESSAGE);
         }
     }
 
-    /**
-     * Carrega todos os projetos do banco e exibe na tabela.
-     */
+    private void populateFormFromSelectedRow() {
+        int selectedRow = projectTable.getSelectedRow();
+        if (selectedRow != -1) {
+            int projectId = (int) tableModel.getValueAt(selectedRow, 0);
+            Project project = projectController.getAllProjects().stream()
+                    .filter(p -> p.getId() == projectId)
+                    .findFirst()
+                    .orElse(null);
+
+            if (project != null) {
+                txtId.setText(String.valueOf(project.getId()));
+                txtName.setText(project.getName());
+                txtDescription.setText(project.getDescription());
+                spinnerStartDate.setValue(project.getStartDate());
+                spinnerEndDatePrev.setValue(project.getEndDatePrev());
+                spinnerEndDateReal.setValue(project.getDataFimReal() != null ? project.getDataFimReal() : new Date());
+                comboStatus.setSelectedItem(project.getStatus());
+                txtManagerId.setText(String.valueOf(project.getGerenteId()));
+            }
+        }
+    }
+
     private void loadProjects() {
-        tableModel.setRowCount(0); // limpa tabela
+        tableModel.setRowCount(0);
         List<Project> projects = projectController.getAllProjects();
         for (Project p : projects) {
             tableModel.addRow(new Object[]{
                     p.getId(),
                     p.getName(),
                     p.getStatus(),
-                    p.getGerenteId() // ID do gerente
+                    p.getGerenteId(),
+                    new java.text.SimpleDateFormat("dd/MM/yyyy").format(p.getEndDatePrev())
             });
         }
+    }
+
+    private void clearForm() {
+        txtId.setText("");
+        txtName.setText("");
+        txtDescription.setText("");
+        spinnerStartDate.setValue(new Date());
+        spinnerEndDatePrev.setValue(new Date());
+        spinnerEndDateReal.setValue(new Date());
+        comboStatus.setSelectedIndex(0);
+        txtManagerId.setText("");
+        projectTable.clearSelection();
+    }
+
+    private void refreshView() {
+        clearForm();
+        loadProjects();
     }
 }
