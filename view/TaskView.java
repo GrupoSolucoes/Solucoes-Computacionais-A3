@@ -12,7 +12,7 @@ import java.util.List;
 
 /**
  * Tela para gerenciar (CRUD) as Tarefas.
- * Versão com layout proporcional e design similar à TeamView e ProjectView.
+ * Versão com layout corrigido para campos proporcionais (estilo RegisterView).
  */
 public class TaskView extends JFrame {
 
@@ -29,16 +29,16 @@ public class TaskView extends JFrame {
     private final DefaultTableModel tableModel;
     private final JTable taskTable;
 
-    // Campos do Formulário
-    private final JTextField txtId = new JTextField();
-    private final JTextField txtTitle = new JTextField();
+    // Campos do Formulário com tamanho preferencial
+    private final JTextField txtId = new JTextField(20);
+    private final JTextField txtTitle = new JTextField(20);
     private final JTextArea txtDescription = new JTextArea(3, 20);
     private final JComboBox<String> comboStatus = new JComboBox<>(new String[]{"A Fazer", "Em Andamento", "Concluída", "Bloqueada"});
     private final JComboBox<String> comboPriority = new JComboBox<>(new String[]{"Baixa", "Média", "Alta"});
     private final JSpinner spinnerStartDate = new JSpinner(new SpinnerDateModel());
     private final JSpinner spinnerEndDate = new JSpinner(new SpinnerDateModel());
-    private final JTextField txtProjectId = new JTextField();
-    private final JTextField txtResponsibleId = new JTextField();
+    private final JTextField txtProjectId = new JTextField(20);
+    private final JTextField txtResponsibleId = new JTextField(20);
 
     public TaskView() {
         setTitle("Gestão de Tarefas");
@@ -55,44 +55,47 @@ public class TaskView extends JFrame {
         topPanel.setBackground(COR_FUNDO);
 
         // --- PAINEL DO FORMULÁRIO ---
-        JPanel formPanel = new JPanel(new GridLayout(0, 2, 10, 10));
+        JPanel formPanel = new JPanel(new GridBagLayout());
+        GridBagConstraints gbc = new GridBagConstraints();
         formPanel.setBackground(COR_PAINEL_FORMULARIO);
         formPanel.setBorder(BorderFactory.createTitledBorder(
                 BorderFactory.createLineBorder(Color.LIGHT_GRAY), "Dados da Tarefa"));
         ((javax.swing.border.TitledBorder) formPanel.getBorder()).setTitleFont(FONTE_TITULO_PAINEL);
+        gbc.insets = new Insets(5, 10, 5, 10);
+        gbc.anchor = GridBagConstraints.WEST;
 
         // Estilização dos componentes
         txtId.setEditable(false);
-        txtId.setFont(FONTE_PADRAO);
-        txtTitle.setFont(FONTE_PADRAO);
-        txtDescription.setFont(FONTE_PADRAO);
-        comboStatus.setFont(FONTE_PADRAO);
-        comboPriority.setFont(FONTE_PADRAO);
         spinnerStartDate.setEditor(new JSpinner.DateEditor(spinnerStartDate, "dd/MM/yyyy"));
         spinnerEndDate.setEditor(new JSpinner.DateEditor(spinnerEndDate, "dd/MM/yyyy"));
-        spinnerStartDate.setFont(FONTE_PADRAO);
-        spinnerEndDate.setFont(FONTE_PADRAO);
-        txtProjectId.setFont(FONTE_PADRAO);
-        txtResponsibleId.setFont(FONTE_PADRAO);
 
-        formPanel.add(createStyledLabel("ID:"));
-        formPanel.add(txtId);
-        formPanel.add(createStyledLabel("Título da Tarefa:"));
-        formPanel.add(txtTitle);
-        formPanel.add(createStyledLabel("Descrição:"));
-        formPanel.add(new JScrollPane(txtDescription));
-        formPanel.add(createStyledLabel("Status:"));
-        formPanel.add(comboStatus);
-        formPanel.add(createStyledLabel("Prioridade:"));
-        formPanel.add(comboPriority);
-        formPanel.add(createStyledLabel("Data de Início Prevista:"));
-        formPanel.add(spinnerStartDate);
-        formPanel.add(createStyledLabel("Data de Fim Prevista:"));
-        formPanel.add(spinnerEndDate);
-        formPanel.add(createStyledLabel("ID do Projeto:"));
-        formPanel.add(txtProjectId);
-        formPanel.add(createStyledLabel("ID do Responsável:"));
-        formPanel.add(txtResponsibleId);
+        // Adicionando componentes à grade
+        gbc.gridx = 0; gbc.gridy = 0; formPanel.add(createStyledLabel("ID:"), gbc);
+        gbc.gridx = 1; formPanel.add(txtId, gbc);
+
+        gbc.gridx = 0; gbc.gridy = 1; formPanel.add(createStyledLabel("Título da Tarefa:"), gbc);
+        gbc.gridx = 1; formPanel.add(txtTitle, gbc);
+
+        gbc.gridx = 0; gbc.gridy = 2; formPanel.add(createStyledLabel("Descrição:"), gbc);
+        gbc.gridx = 1; formPanel.add(new JScrollPane(txtDescription), gbc);
+
+        gbc.gridx = 0; gbc.gridy = 3; formPanel.add(createStyledLabel("Status:"), gbc);
+        gbc.gridx = 1; formPanel.add(comboStatus, gbc);
+
+        gbc.gridx = 0; gbc.gridy = 4; formPanel.add(createStyledLabel("Prioridade:"), gbc);
+        gbc.gridx = 1; formPanel.add(comboPriority, gbc);
+
+        gbc.gridx = 0; gbc.gridy = 5; formPanel.add(createStyledLabel("Data Início Prevista:"), gbc);
+        gbc.gridx = 1; formPanel.add(spinnerStartDate, gbc);
+
+        gbc.gridx = 0; gbc.gridy = 6; formPanel.add(createStyledLabel("Data Fim Prevista:"), gbc);
+        gbc.gridx = 1; formPanel.add(spinnerEndDate, gbc);
+
+        gbc.gridx = 0; gbc.gridy = 7; formPanel.add(createStyledLabel("ID do Projeto:"), gbc);
+        gbc.gridx = 1; formPanel.add(txtProjectId, gbc);
+
+        gbc.gridx = 0; gbc.gridy = 8; formPanel.add(createStyledLabel("ID do Responsável:"), gbc);
+        gbc.gridx = 1; formPanel.add(txtResponsibleId, gbc);
 
         topPanel.add(formPanel, BorderLayout.CENTER);
 
@@ -100,15 +103,12 @@ public class TaskView extends JFrame {
         JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 10, 0));
         buttonPanel.setBackground(COR_FUNDO);
         buttonPanel.setBorder(new EmptyBorder(10, 0, 10, 0));
-
         JButton btnSave = createStyledButton("Salvar", COR_BOTAO_SALVAR);
         JButton btnUpdate = createStyledButton("Atualizar", Color.DARK_GRAY);
         JButton btnDelete = createStyledButton("Deletar", COR_BOTAO_DELETAR);
-
         buttonPanel.add(btnSave);
         buttonPanel.add(btnUpdate);
         buttonPanel.add(btnDelete);
-
         topPanel.add(buttonPanel, BorderLayout.SOUTH);
         mainPanel.add(topPanel, BorderLayout.NORTH);
 
@@ -119,7 +119,6 @@ public class TaskView extends JFrame {
         taskTable.setFont(FONTE_PADRAO);
         taskTable.setRowHeight(25);
         taskTable.getTableHeader().setFont(FONTE_BOTAO);
-
         mainPanel.add(new JScrollPane(taskTable), BorderLayout.CENTER);
 
         // AÇÕES
@@ -134,6 +133,7 @@ public class TaskView extends JFrame {
         loadTasks();
     }
 
+    // --- MÉTODOS DE LÓGICA E AUXILIARES (COMPLETOS) ---
     private JLabel createStyledLabel(String text) {
         JLabel label = new JLabel(text);
         label.setFont(FONTE_PADRAO);
@@ -156,16 +156,10 @@ public class TaskView extends JFrame {
         }
         try {
             Task task = new Task(
-                    0,
-                    taskTitle,
-                    txtDescription.getText(),
-                    comboStatus.getSelectedItem().toString(),
-                    (Date) spinnerStartDate.getValue(),
-                    (Date) spinnerEndDate.getValue(),
-                    null,
-                    comboPriority.getSelectedItem().toString(),
-                    Integer.parseInt(txtProjectId.getText()),
-                    Integer.parseInt(txtResponsibleId.getText())
+                    0, taskTitle, txtDescription.getText(),
+                    comboStatus.getSelectedItem().toString(), (Date) spinnerStartDate.getValue(),
+                    (Date) spinnerEndDate.getValue(), null, comboPriority.getSelectedItem().toString(),
+                    Integer.parseInt(txtProjectId.getText()), Integer.parseInt(txtResponsibleId.getText())
             );
             taskController.addTask(task);
             JOptionPane.showMessageDialog(this, "Tarefa salva com sucesso!");
@@ -187,16 +181,10 @@ public class TaskView extends JFrame {
         }
         try {
             Task task = new Task(
-                    Integer.parseInt(txtId.getText()),
-                    taskTitle,
-                    txtDescription.getText(),
-                    comboStatus.getSelectedItem().toString(),
-                    (Date) spinnerStartDate.getValue(),
-                    (Date) spinnerEndDate.getValue(),
-                    null,
-                    comboPriority.getSelectedItem().toString(),
-                    Integer.parseInt(txtProjectId.getText()),
-                    Integer.parseInt(txtResponsibleId.getText())
+                    Integer.parseInt(txtId.getText()), taskTitle, txtDescription.getText(),
+                    comboStatus.getSelectedItem().toString(), (Date) spinnerStartDate.getValue(),
+                    (Date) spinnerEndDate.getValue(), null, comboPriority.getSelectedItem().toString(),
+                    Integer.parseInt(txtProjectId.getText()), Integer.parseInt(txtResponsibleId.getText())
             );
             taskController.updateTask(task);
             JOptionPane.showMessageDialog(this, "Tarefa atualizada com sucesso!");
@@ -249,12 +237,8 @@ public class TaskView extends JFrame {
         List<Task> tasks = taskController.getAllTasks();
         for (Task t : tasks) {
             tableModel.addRow(new Object[]{
-                    t.getId(),
-                    t.getTitle(),
-                    t.getStatus(),
-                    t.getPrioridade(),
-                    t.getProjectId(),
-                    t.getResponsavelId()
+                    t.getId(), t.getTitle(), t.getStatus(),
+                    t.getPrioridade(), t.getProjectId(), t.getResponsavelId()
             });
         }
     }
