@@ -10,6 +10,7 @@ import java.util.List;
 
 /**
  * Tela para gerenciar (CRUD) as Equipes.
+ * Versão corrigida com validação de entrada e código refatorado.
  */
 public class TeamView extends JFrame {
 
@@ -73,21 +74,34 @@ public class TeamView extends JFrame {
     }
 
     private void saveTeam() {
-        Team team = new Team(txtName.getText(), txtDescription.getText());
+        String teamName = txtName.getText().trim(); // .trim() remove espaços em branco
+
+        // Validação para impedir nome em branco
+        if (teamName.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "O nome da equipe não pode estar em branco.", "Erro de Validação", JOptionPane.ERROR_MESSAGE);
+            return; // Impede a execução do resto do método
+        }
+
+        Team team = new Team(teamName, txtDescription.getText());
         teamController.addTeam(team);
         JOptionPane.showMessageDialog(this, "Equipe salva com sucesso!");
-        clearForm();
-        loadTeams();
+        refreshView(); // Chamada unificada
     }
 
     private void updateTeam() {
         try {
             int id = Integer.parseInt(txtId.getText());
-            Team team = new Team(id, txtName.getText(), txtDescription.getText());
+            String teamName = txtName.getText().trim();
+
+            if (teamName.isEmpty()) {
+                JOptionPane.showMessageDialog(this, "O nome da equipe não pode estar em branco.", "Erro de Validação", JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+
+            Team team = new Team(id, teamName, txtDescription.getText());
             teamController.updateTeam(team);
             JOptionPane.showMessageDialog(this, "Equipe atualizada com sucesso!");
-            clearForm();
-            loadTeams();
+            refreshView(); // Chamada unificada
         } catch (NumberFormatException e) {
             JOptionPane.showMessageDialog(this, "Selecione uma equipe na tabela para atualizar.", "Aviso", JOptionPane.WARNING_MESSAGE);
         }
@@ -101,8 +115,7 @@ public class TeamView extends JFrame {
             if (confirmation == JOptionPane.YES_OPTION) {
                 teamController.deleteTeam(id);
                 JOptionPane.showMessageDialog(this, "Equipe deletada com sucesso!");
-                clearForm();
-                loadTeams();
+                refreshView(); // Chamada unificada
             }
         } catch (NumberFormatException e) {
             JOptionPane.showMessageDialog(this, "Selecione uma equipe na tabela para deletar.", "Aviso", JOptionPane.WARNING_MESSAGE);
@@ -131,5 +144,13 @@ public class TeamView extends JFrame {
         txtName.setText("");
         txtDescription.setText("");
         teamTable.clearSelection();
+    }
+
+    /**
+     * Novo método que agrupa as ações de limpar o formulário e recarregar a tabela.
+     */
+    private void refreshView() {
+        clearForm();
+        loadTeams();
     }
 }
